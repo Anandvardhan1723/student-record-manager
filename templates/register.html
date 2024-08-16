@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .container{
+            background-image: url("https://img.freepik.com/free-vector/realistic-neon-lights-background_23-2148907367.jpg");
+            background-size: cover;
+            height:100vh;
+        }
+    </style>
+</head>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+     <h1><center>{{ message }}</center></h1>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+  
+<body>
+    <center class="container">
+    <form action="" method="post">
+        <h1>Signup Details</h1>
+        <label>First Name</label></br>
+        <input type="text" placeholder="enter first name" name="fname"/></br>
+        <label>Last Name</label></br>
+        <input type="text" placeholder="enter last name" name="lname"/></br>
+        <label>email</label></br>
+        <input type="text" placeholder="enter email adress" name="email"/></br>
+        <label>password</label></br>
+        <input type="password" placeholder="enter password" name="pwd"/></br>
+        <label>Confirm password</label></br>
+        <input type="password" placeholder="confirm password " name="cpwd"/>
+        <button>Submit</button>
+    </form>
+    <center>
+
+</body>
+</html>
