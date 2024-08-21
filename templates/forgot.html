@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,18 +8,14 @@
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     {% for message in messages %}
-     <h1><center>{{ message }}</center></h1>
+     <h1 class="two"><center>{{ message }}</center></h1>
     {% endfor %}
   {% endif %}
 {% endwith %}
-
 <body>
     <form method="post">
-        <label>Enter email</label>
-        <input type="email" placeholder="enter your mail id" name="email">
+        <input type="email" name="email" placeholder="Enter your email"/>
         <button>submit</button>
     </form>
-
 </body>
-
 </html>

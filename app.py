@@ -88,7 +88,7 @@ def login():
                 else:
                     flash("invalid password")
         return render_template("login.html")
-@app.route("/address",methods=["GET","POST"])
+@app.route("/addnotes",methods=["GET","POST"])
 def addnotes():
     if not session.get("email"):
         return redirect(url_for("login"))
@@ -181,98 +181,95 @@ def fileupload():
             flash(f"file{file.filename} added successfully")
             return redirect(url_for('panel'))
     return render_template("fileupload.html")
-@app.route("/viewall_files")
+@app.route('/viewall_files')
 def viewall_files():
-    if not session.get("email"):
-        return redirect(url_for("login"))
+    if not session.get('email'):
+        return redirect(url_for('login'))
     else:
-        added_by=session.get("email")
+        added_by=session.get('email')
         cursor=mydb.cursor(buffered=True)
-        cursor.execute("select f_id,file_name,created_at from files_data where added_by=%s",[added_by])
-        data=cursor.fetchall
-        return render_template("allfiles.html",data=data)
-@app.route("/view_files/<f_id>")
-def view_file(f_id):
-    if not session.get("email"):
-        return redirect(url_for("login"))
+        cursor.execute('select f_id,file_name,created_at from files_data where added_by=%s',[added_by])
+        data=cursor.fetchall()
+        return render_template('allfiles.html',data=data)
+@app.route('/view_file/<fid>')
+def view_file(fid):
+    if not session.get('email'):
+        return redirect(url_for('login'))
     else:
         try:
             cursor=mydb.cursor(buffered=True)
-            cursor.execute("select file_name,file_data from files_data where f_id=%s and added_by=%s",[fid,session.get("email")])
+            cursor.execute('select file_name,file_data from files_data where f_id=%s and added_by=%s',[fid,session.get('email')])
             fname,fdata=cursor.fetchone()
             bytes_data=BytesIO(fdata)
             filename=fname
             return send_file(bytes_data,download_name=filename,as_attachment=False)
         except Exception as e:
             print(e)
-            return "file not found"
+            return 'file not found'
         finally:
             cursor.close()
-@app.route('/download_file/<f_id>')
-def download_files(f_id):
+@app.route('/download_file/<fid>')
+def download_file(fid):
     if not session.get('email'):
         return redirect(url_for('login'))
-
-    try:
-        cursor = mydb.cursor(buffered=True)
-        cursor.execute('SELECT file_name, file_data FROM files_data WHERE f_id=%s AND added_by=%s', [f_id, session.get('email')])
-        fname, fdata = cursor.fetchone()
-        bytes_data = BytesIO(fdata)
-        filename = fname
-        return send_file(bytes_data, download_name=filename, as_attachment=True)
-    except Exception as e:
-        print(e)
-        return 'File not found'
-    finally:
-        cursor.close()
-
-@app.route('/forgotpassword', methods=['GET', 'POST'])
+    else:
+        try:
+            cursor=mydb.cursor(buffered=True)
+            cursor.execute('select file_name,file_data from files_data where f_id=%s and added_by=%s',[fid,session.get('email')])
+            fname,fdata=cursor.fetchone()
+            bytes_data=BytesIO(fdata)
+            filename=fname
+            return send_file(bytes_data,download_name=filename,as_attachment=True)
+        except Exception as e:
+            print(e)
+            return 'file not found'
+        finally:
+            cursor.close()
+@app.route("/forgot_password",methods=["GET","POST"])
 def forgotpassword():
     if session.get('email'):
         return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        email = request.form['email']
-        cursor = mydb.cursor(buffered=True)
-        cursor.execute('SELECT COUNT(email) FROM stu_info WHERE email=%s', [email])
-        count = cursor.fetchone()[0]
-
-        if count == 0:
-            flash('Email does not exist. Please register.')
-            return redirect(url_for('sign'))
-        elif count == 1:
-            subject = "Reset link for SPM application"
-            body = f'Reset link for SPM application {url_for("reset", data=token(data=email), _external=True)}'
-            sendmail(to=email, subject=subject, body=body)
-            flash('Reset link has been sent to your email')
-        else:
-            flash('Something went wrong')
-
+    else:
+        if request.method=="POST":
+            email=request.form['email'] 
+            cursor=mydb.cursor(buffered=True)
+            cursor.execute('select count(email) from student_reg where email=%s',[email])
+            count=cursor.fetchone()[0]
+            if count==0:
+                flash('Email not exists pls register.')
+                return redirect(url_for('register'))
+            elif count==1:
+                subject='Reset link for SPM Application'
+                body=f"Registration otp for SPM application : {url_for('reset',data=token(data=email),_external=True)}"
+                sendmail(to=email,subject=subject,body=body)
+                flash("Reset link has been sent to given Email.")
+            else:
+                return render_template('forgot.html')       
     return render_template('forgot.html')
 
-@app.route('/reset/<data>', methods=['GET', 'POST'])
+@app.route('/reset/<data>',methods=["GET","POST"])
 def reset(data):
     try:
-        email = dtoken(data=data)
+        email=dtoken(data=data)
     except Exception as e:
         print(e)
-        return 'Something went wrong'
-
-    if request.method == 'POST':
-        npassword = request.form['npwd']
-        cpassword = request.form['cpwd']
-
-        if npassword == cpassword:
-            cursor = mydb.cursor(buffered=True)
-            cursor.execute('UPDATE stu_info SET password=%s WHERE email=%s', [npassword, email])
-            mydb.commit()
-            cursor.close()
-            flash('Password updated successfully')
-            return redirect(url_for('login'))
-
+        return "something went wrong"
+    else:
+        if request.method=="POST":
+            npassword=request.form["npwd"]
+            cpassword=request.form["cpwd"]
+            if npassword==cpassword:
+                cursor=mydb.cursor(buffered=True)
+                cursor.execute('update student_reg set password=%s where email=%s',[npassword,email])
+                mydb.commit()
+                cursor.close()
+                flash('Newpassword updated succefully')
+                return redirect(url_for('login'))
+            else:
+                return "your confirm password is wrong"
     return render_template('newpassword.html')
 
-@app.route('/search',methods=["GET,POST"])
+@app.route('/search',methods=["GET","POST"])
 def search():
     if session.get('email'):
         if request.method=="POST":
@@ -288,7 +285,7 @@ def search():
                 cursor.close()
                 return render_template('panel.html',sname=sname,fname=fname)
             else:
-                flash('result nor found')
+                flash('result not found')
                 return redirect(url_for('panel'))
     else:
         return redirect(url_for('login'))
